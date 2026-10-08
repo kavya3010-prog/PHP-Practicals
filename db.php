@@ -1,12 +1,9 @@
 <?php
 
-$conn = mysqli_connect("localhost", "root", "", "college");
+$conn = mysqli_connect("localhost", "root", "", "ajax_db");
 
-if (!$conn)
-{
-    die("Connection failed: " . mysqli_connect_error());
+if (!$conn) {
+    die("Database connection failed");
 }
-
-echo "Database Connected Successfully";
 
 ?>
