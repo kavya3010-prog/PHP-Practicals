@@ -1,36 +1,73 @@
+
 <?php
+if (isset($_FILES['image'])) {
 
-if (isset($_POST['upload'])) {
+    $file = $_FILES['image'];
 
-    if (isset($_FILES['myfile']) && $_FILES['myfile']['error'] == 0) {
+    if ($file['error'] != 0) {
+        echo "Error uploading image!";
+        exit;
+    }
 
-        $fileName = $_FILES['myfile']['name'];
-        $fileTmp = $_FILES['myfile']['tmp_name'];
+    // Check that the uploaded file is an actual image
+    $imageInfo = getimagesize($file['tmp_name']);
 
-        $extension = strtolower(
-            pathinfo($fileName, PATHINFO_EXTENSION)
-        );
+    if ($imageInfo === false) {
+        echo "Please upload a valid image!";
+        exit;
+    }
 
-        if ($extension == "doc" || $extension == "pdf") {
+    // Allow common image formats only
+    $allowedTypes = array(
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp'
+    );
 
-            if (!is_dir("uploads")) {
-                mkdir("uploads");
-            }
+    $type = $imageInfo['mime'];
 
-            $destination = "uploads/" . basename($fileName);
+    if (!in_array($type, $allowedTypes)) {
+        echo "Only JPG, PNG, GIF and WEBP images are allowed!";
+        exit;
+    }
 
-            if (move_uploaded_file($fileTmp, $destination)) {
-                echo "File uploaded successfully.";
-            } else {
-                echo "Error while moving the file.";
-            }
+    // Create uploads folder if it does not exist
+    if (!is_dir("uploads")) {
+        mkdir("uploads", 0755);
+    }
 
-        } else {
-            echo "Invalid file type. Only DOC and PDF are allowed.";
-        }
+    $name = basename($file['name']);
+    $size = $file['size'];
+    $time = date("d-m-Y h:i:s A");
+
+    // Generate a unique filename
+    $extension = image_type_to_extension(
+        $imageInfo[2], false
+    );
+
+    $newName = uniqid("img_", true) . "." . $extension;
+    $path = "uploads/" . $newName;
+
+    if (move_uploaded_file($file['tmp_name'], $path)) {
+
+        echo "<h3>Image Uploaded Successfully!</h3>";
+
+        echo "<img src='$path' width='200' alt='Uploaded image'>";
+        echo "<p><b>File Name:</b> "
+             . htmlspecialchars($name) . "</p>";
+
+        echo "<p><b>File Size:</b> "
+             . round($size / 1024, 2) . " KB</p>";
+
+        echo "<p><b>File Type:</b> "
+             . htmlspecialchars($type) . "</p>";
+
+        echo "<p><b>Upload Time:</b> "
+             . $time . "</p>";
 
     } else {
-        echo "Please select a file.";
+        echo "Failed to upload image!";
     }
 }
 ?>
